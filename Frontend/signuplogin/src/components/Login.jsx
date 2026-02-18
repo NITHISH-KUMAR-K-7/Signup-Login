@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import {Link,useNavigate} from 'react-router-dom'
 import Validation from './SignupValidation'
 import axios from 'axios'
+import { AuthContext } from "./AuthContext";
+
 
 function Login() {
 
@@ -10,8 +12,12 @@ function Login() {
 
   const navigate = useNavigate()
 
+  const {dispatch} = useContext(AuthContext)
+
   const handleChange = (event)=>{
     setForData({...formData,[event.target.name]:event.target.value})
+
+    setError({});
   }
 
   const handleSubmit = async(event)=>{
@@ -22,20 +28,30 @@ function Login() {
     //stop if validation fails
     if (Object.keys(validationErrors).length > 0) return;
 
+    // Not error Run 
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/login`,
         formData,
       );
 
-      // console.log(res.data);
+      dispatch({
+        type:"LOGIN",
+        payload: {
+          token:res.data.token,
+          user:res.data.user
+        }
+      })
 
-      // backend sends { message: "Login Success" }
-      if (res.data.message === "Login Sucess") {
-        navigate("/home");
+    
+      if (res.data.token) {
+        navigate("/profile");
       }
     } catch (err) {
-      console.log(err);
+      setError((prev) => ({
+        ...prev,
+        server: err.response?.data?.message || "Login failed",
+      }));
     }
   }
 
@@ -46,6 +62,11 @@ function Login() {
           <div className="bg-white w-[80%] max-w-md rounded-lg">
             <form onSubmit={handleSubmit}>
               <h1 className="text-2xl font-bold text-center mt-3">Login</h1>
+
+              {/* server error */}
+              {error.server && (
+                <p className="text-red-500 text-center">{error.server}</p>
+              )}
 
               <div className="px-5 mb-3">
                 <label className="text-lg flex" htmlFor="">
@@ -101,3 +122,5 @@ function Login() {
 }
 
 export default Login
+
+

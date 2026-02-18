@@ -1,17 +1,20 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import Validation from './SignupValidation';
 import axios from 'axios'
+import {AuthContext} from './AuthContext';
 
 function Signup() {
 
     const [formData,SetFormData] = useState({username:"",email:"",password:""})
 
-    const [error,setError] = useState({})
-    const navigate = useNavigate()
+    const [error,setError] = useState({}) //signup error validation
+    const navigate = useNavigate() 
 
     const [serverError, setServerError] = useState(""); // for server error check
     const [loading, setLoading] = useState(false); // for loading
+
+    useContext(AuthContext)
 
     const handleChange = (event)=>{
         SetFormData({...formData,[event.target.name]:event.target.value})
@@ -41,6 +44,14 @@ function Signup() {
         <div className="bg-white w-[80%] max-w-md rounded-lg">
           <form onSubmit={handleSubmit}>
             <h1 className="text-2xl font-bold text-center mt-3">Signup</h1>
+
+              {/* already exists account again try to signup error  */}
+            {serverError && (
+              <div className="mx-5 mt-2 text-red-600 font-medium">
+                {serverError}
+              </div>
+            )}
+
             <div className="px-5 mb-3">
               <label className="text-lg flex" htmlFor="">
                 Username

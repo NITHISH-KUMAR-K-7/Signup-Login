@@ -1,5 +1,7 @@
 import Users from "../model/usermodel.js";
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+
 
 export const signup = async (req,res)=>{
     try{
@@ -40,6 +42,7 @@ export const signup = async (req,res)=>{
 
         //create user 
         const user = await Users.create({username,email,password:hashedpassword})
+
         res.status(201).json({message:"User created succesully",user})
 
     }catch(error){
@@ -55,22 +58,36 @@ export const signup = async (req,res)=>{
             const user = await Users.findOne({email})
 
             if(!user){
-                res.status(400).json({message:"Invalid email"})
+               return res.status(400).json({message:"Invalid email"})
             }
 
+            // validata password
             const isMatch = await bcrypt.compare(password,user.password)
 
             if(!isMatch){
                 return res.status(400).json({message:"Invalid Password"})
             }
 
-            res.json({
-                message:"Login Sucess",user
+            //send token
+             const token = jwt.sign({id: user._id},process.env.SECRET_KEY)
+            //  console.log(token)
+
+        
+
+             res.json({
+                message:"Login Sucess",token,user
             })
+
         }catch(error){
             res.status(500).json({message:error.message})
         }
 
     } 
+
+
+    export const profile = async (req,res)=>{
+
+      res.json(`Welcome ${req.user.username}`)
+    }
 
     
